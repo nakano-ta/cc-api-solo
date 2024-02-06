@@ -1,15 +1,15 @@
 const knex = require('../knex');
 
 class Book {
-  constructor(id, code, title) {
-    this.id = id;
+  constructor(code, title) {
     this.code = code;
     this.title = title;
 
-    this.author = null;
-    this.publisher = null;
-    this.price = null;
-    this.publicationDate = null;
+    // this.id = null;
+    // this.author = null;
+    // this.publisher = null;
+    // this.price = null;
+    // this.publicationDate = null;
   }
 }
 
@@ -28,10 +28,11 @@ class BookRepository {
     const target = { ...book };
     delete target.id;
 
+    // insertだとfirstが使えない
     return knex(BookRepository.tableName)
       .insert(target)
       .returning('*')
-      .then((targets) => targets[0]);
+      .then((x) => x[0]);
   }
 
   static erase(id) {
@@ -42,7 +43,8 @@ class BookRepository {
     return knex(BookRepository.tableName)
       .where({ id: book.id })
       .update(book)
-      .returning('*');
+      .returning('*')
+      .then((x) => x[0]);
   }
 }
 

@@ -10,60 +10,51 @@ const setupExpressServer = () => {
     res.send('Hello World');
   });
 
-  app.get('/books', (req, res) => {
-    BookRepository.getAll().then((x) => {
-      res.status(200).json(x);
-    });
+  app.get('/books', async (req, res) => {
+    const result = await BookRepository.getAll();
+    res.status(200).json(result);
   });
 
-  app.post('/books', (req, res) => {
+  app.post('/books', async (req, res) => {
     const { code, title } = req.body;
-    const book = new Book(null, code, title);
-
-    BookRepository.create(book).then((x) => {
-      res.status(201).json(x);
-    });
+    const book = new Book(code, title);
+    const result = await BookRepository.create(book);
+    res.status(201).json(result);
   });
 
-  app.delete('/books/:id', (req, res) => {
+  app.delete('/books/:id', async (req, res) => {
     const { id } = req.params;
 
-    let target;
     const targetId = parseInt(id);
-    BookRepository.getById(targetId).then((x) => {
-      if (x == null) {
-        res.sendStatus(404);
-        return;
-      }
+    const getResult = await BookRepository.getById(targetId);
+    if (getResult == null) {
+      res.sendStatus(404);
+      return;
+    }
 
-      BookRepository.erase(id).then((x) => {
-        res.sendStatus(204);
-      });
-    });
+    const eraseResult = await BookRepository.erase(id);
+    res.sendStatus(204);
   });
 
-  app.patch('/books/:id', (req, res) => {
+  app.patch('/books/:id', async (req, res) => {
     const { id } = req.params;
-    let target;
-    BookRepository.getById(id).then((x) => {
-      target = x;
+    const getResult = await BookRepository.getById(id);
 
-      if (target == null) {
-        res.sendStatus(404);
-        return;
+    if (getResult == null) {
+      res.sendStatus(404);
+      return;
+    }
+
+    const target = getResult;
+    req.body.id = id;
+    for (const key in req.body) {
+      if (target.hasOwnProperty(key)) {
+        target[key] = req.body[key];
       }
+    }
 
-      req.body.id = id;
-      for (const key in req.body) {
-        if (target.hasOwnProperty(key)) {
-          target[key] = req.body[key];
-        }
-      }
-
-      BookRepository.update(target).then((x) => {
-        res.status(200).json(x);
-      });
-    });
+    const updateResult = await BookRepository.update(target);
+    res.status(200).json(updateResult);
   });
 
   return app;
