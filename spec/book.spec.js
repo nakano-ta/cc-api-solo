@@ -23,7 +23,7 @@ describe('The Express Server', () => {
       request = chai.request(app);
     });
 
-    it('should get valid Book', async () => {
+    it('should get all Book', async () => {
       const expected1 = await BookRepository.create(new Book('100', 'hoge'));
       const expected2 = await BookRepository.create(new Book('101', 'foo'));
 
@@ -32,6 +32,24 @@ describe('The Express Server', () => {
       res.should.have.status(200);
       res.body[0].should.deep.equal(expected1);
       res.body[1].should.deep.equal(expected2);
+    });
+
+    it('should get a Book', async () => {
+      const expected = await BookRepository.create(new Book('100', 'hoge'));
+      const res = await request.get(`/books/${expected.code}`);
+      res.should.be.json;
+      res.should.have.status(200);
+      res.body.should.deep.equal(expected);
+    });
+
+    it('should get no Book', async () => {
+      const res = await request.get('/books/999');
+      res.should.have.status(404);
+    });
+
+    it('should not get a Book invalid code', async () => {
+      const res = await request.get('/books/1000');
+      res.should.have.status(400);
     });
 
     it('should post a new Book', async () => {
@@ -46,27 +64,37 @@ describe('The Express Server', () => {
 
     it('should delete a Book', async () => {
       const target = await BookRepository.create(new Book('100', 'hoge'));
-      const res = await request.delete(`/books/${target.id}`);
+      const res = await request.delete(`/books/${target.code}`);
       res.should.have.status(204);
     });
 
     it('should delete no Book', async () => {
-      const res = await request.delete('/books/100');
+      const res = await request.delete('/books/999');
       res.should.have.status(404);
+    });
+
+    it('should not delete a Book invalid code', async () => {
+      const res = await request.delete('/books/1000');
+      res.should.have.status(400);
     });
 
     it('should patch a Book', async () => {
       const target = await BookRepository.create(new Book('100', 'hoge'));
       const res = await request
-        .patch(`/books/${target.id}`)
+        .patch(`/books/${target.code}`)
         .send({ title: 'foo' });
       res.should.have.status(200);
       res.body.title.should.equal('foo');
     });
 
     it('should patch no Book', async () => {
-      const res = await request.patch('/books/100').send({ title: 'foo' });
+      const res = await request.patch('/books/999').send({ title: 'foo' });
       res.should.have.status(404);
+    });
+
+    it('should not patch a Book invalid code', async () => {
+      const res = await request.patch('/books/1000');
+      res.should.have.status(400);
     });
   });
 });

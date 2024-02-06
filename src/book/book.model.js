@@ -4,12 +4,6 @@ class Book {
   constructor(code, title) {
     this.code = code;
     this.title = title;
-
-    // this.id = null;
-    // this.author = null;
-    // this.publisher = null;
-    // this.price = null;
-    // this.publicationDate = null;
   }
 }
 
@@ -20,8 +14,8 @@ class BookRepository {
     return knex(BookRepository.tableName).select();
   }
 
-  static getById(id) {
-    return knex(BookRepository.tableName).select().where({ id: id }).first();
+  static getByCode(code) {
+    return knex(BookRepository.tableName).select().where({ code }).first();
   }
 
   static create(book) {
@@ -35,13 +29,13 @@ class BookRepository {
       .then((x) => x[0]);
   }
 
-  static erase(id) {
-    return knex(BookRepository.tableName).where({ id }).delete();
+  static erase(code) {
+    return knex(BookRepository.tableName).where({ code }).delete();
   }
 
   static update(book) {
     return knex(BookRepository.tableName)
-      .where({ id: book.id })
+      .where({ code: book.code })
       .update(book)
       .returning('*')
       .then((x) => x[0]);
