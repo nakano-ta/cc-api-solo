@@ -1,18 +1,5 @@
 const express = require('express');
-
-class Book {
-  static idCounter = 0;
-
-  constructor(title) {
-    this.id = Book.idCounter++;
-    this.code = '100';
-    this.title = title;
-    this.author = '著者';
-    this.publishedAt = new Date();
-  }
-}
-
-let db = [new Book('Hoge'), new Book('Foo')];
+const { Book, BookRepository } = require('./book/book.model');
 
 const setupExpressServer = () => {
   const app = express();
@@ -24,45 +11,59 @@ const setupExpressServer = () => {
   });
 
   app.get('/books', (req, res) => {
-    res.json(db);
+    BookRepository.getAll().then((x) => {
+      res.status(200).json(x);
+    });
   });
 
   app.post('/books', (req, res) => {
-    const { title } = req.body;
-    const book = new Book(title);
-    db.push(book);
+    const { code, title } = req.body;
+    const book = new Book(null, code, title);
 
-    res.status(201).json(book);
+    BookRepository.create(book).then((x) => {
+      res.status(201).json(x);
+    });
   });
 
   app.delete('/books/:id', (req, res) => {
     const { id } = req.params;
 
-    const book = db.find((x) => x.id === Number(id));
-    if (book === null) {
-      return res.sendStatus(404);
-    }
+    let target;
+    const targetId = parseInt(id);
+    BookRepository.getById(targetId).then((x) => {
+      if (x == null) {
+        res.sendStatus(404);
+        return;
+      }
 
-    db = db.filter((x) => x.id !== Number(id));
-    res.sendStatus(204);
+      BookRepository.erase(id).then((x) => {
+        res.sendStatus(204);
+      });
+    });
   });
 
   app.patch('/books/:id', (req, res) => {
     const { id } = req.params;
-    const book = db.find((x) => x.id === Number(id));
+    let target;
+    BookRepository.getById(id).then((x) => {
+      target = x;
 
-    if (book === null) {
-      return res.sendStatus(404);
-    }
-
-    res.body.id = id;
-    for (const key in req.body) {
-      if (book.hasOwnProperty(key)) {
-        book[key] = req.body[key];
+      if (target == null) {
+        res.sendStatus(404);
+        return;
       }
-    }
 
-    res.status(200).json(book);
+      req.body.id = id;
+      for (const key in req.body) {
+        if (target.hasOwnProperty(key)) {
+          target[key] = req.body[key];
+        }
+      }
+
+      BookRepository.update(target).then((x) => {
+        res.status(200).json(x);
+      });
+    });
   });
 
   return app;
