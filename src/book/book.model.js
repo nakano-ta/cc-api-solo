@@ -1,9 +1,13 @@
 const knex = require('../knex');
 
 class Book {
-  constructor(code, title) {
+  constructor(code, title, author, publisher, price, publicationDate) {
     this.code = code;
     this.title = title;
+    this.author = author;
+    this.publisher = publisher;
+    this.price = price;
+    this.publicationDate = publicationDate;
   }
 }
 
