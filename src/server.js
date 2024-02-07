@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const { BookController } = require('./book/book.controller');
 const { Validator } = require('./common/validator');
 
@@ -8,7 +9,7 @@ const setupExpressServer = () => {
   app.use(express.json());
 
   app.get('/', (req, res) => {
-    res.send('Hello World');
+    res.sendfile(path.join(__dirname, 'index.html'));
   });
 
   app.get('/books', BookController.getAll);
